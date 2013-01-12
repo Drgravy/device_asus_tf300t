@@ -32,11 +32,11 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/ramdisk/init.cardhu.rc:root/init.cardhu.rc \
-    $(LOCAL_PATH)/ramdisk/init.cardhu.keyboard.rc:root/init.cardhu.keyboard.rc \
     $(LOCAL_PATH)/ramdisk/ueventd.cardhu.rc:root/ueventd.cardhu.rc \
     $(LOCAL_PATH)/ramdisk/init.cardhu.usb.rc:root/init.cardhu.usb.rc \
     $(LOCAL_PATH)/ramdisk/init.cardhu.cpu.rc:root/init.cardhu.cpu.rc \
-    $(LOCAL_PATH)/ramdisk/fstab.cardhu:root/fstab.cardhu
+    $(LOCAL_PATH)/ramdisk/fstab.cardhu:root/fstab.cardhu \
+    $(LOCAL_PATH)/prebuilt/keyswap::root/sbin/keyswap
 
 # Kernel modules
 PRODUCT_COPY_FILES += \
@@ -78,10 +78,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
     $(LOCAL_PATH)/prebuilt/tegra-kbc.kl:system/usr/keylayout/tegra-kbc.kl
 
-# Build characteristics setting 
+# Localized input keychars and keylayout files
+$(call inherit-product, $(LOCAL_PATH)/keychars/l10n/l10n.mk)
+$(call inherit-product, $(LOCAL_PATH)/keylayout/l10n/l10n.mk)
+
+
+# Build characteristics setting
 PRODUCT_CHARACTERISTICS := tablet
-PRODUCT_AAPT_CONFIG := normal large xlarge hdpi
-PRODUCT_AAPT_PREF_CONFIG := xlarge hdpi
+PRODUCT_AAPT_CONFIG := normal large xlarge mdpi
+PRODUCT_AAPT_PREF_CONFIG := xlarge mdpi
 
 # Camera/WiFi/BT Firmware
 PRODUCT_COPY_FILES += \
