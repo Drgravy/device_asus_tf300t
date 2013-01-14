@@ -54,12 +54,16 @@ PRODUCT_COPY_FILES += \
 
 # Prebuilt configuration files
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/vold.fstab:system/etc/vold.fstab \
     $(LOCAL_PATH)/prebuilt/gpsconfig.xml:system/etc/gps/gpsconfig.xml \
     $(LOCAL_PATH)/prebuilt/audio_policy.conf:system/etc/audio_policy.conf \
     $(LOCAL_PATH)/configs/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf \
     $(LOCAL_PATH)/prebuilt/gps.conf:system/etc/gps.conf \
     $(LOCAL_PATH)/prebuilt/SuplRootCert:system/etc/SuplRootCert
+
+# Prebuilt config files
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab \
+    system/bluetooth/data/main.nonsmartphone.conf:system/etc/bluetooth/main.conf
 
 
 # Input device configuration files
