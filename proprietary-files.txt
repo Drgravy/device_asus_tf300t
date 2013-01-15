@@ -1,5 +1,6 @@
 bin/brcm_patchram_plus
 bin/bt_firmware_loader.sh
+bin/btmacreader
 bin/glgps
 bin/rild
 bin/rm_ts_server
