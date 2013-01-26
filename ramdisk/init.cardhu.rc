@@ -21,7 +21,7 @@ on init
 
     # Enable secondary storage
     export SECONDARY_STORAGE /storage/sdcard1
-
+ 
     # make the pathes for the external media mounts
     mkdir /storage/sdcard1 0000 system system
     mkdir /storage/sdcard2 0000 system system
@@ -199,11 +199,6 @@ on boot
 
 # Write Wi-Fi Mac
 service wifimacwriter /system/bin/wifimacwriter
-    class main
-    oneshot
-
-# Write BT BD_ADDR
-service btmacreader /system/bin/btmacreader
     class main
     oneshot
 
