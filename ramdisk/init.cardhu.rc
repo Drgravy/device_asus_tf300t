@@ -5,7 +5,6 @@ on early-init
     mount debugfs debugfs /sys/kernel/debug
 
 on init
-# for backwards compatibility
     # for backwards compatibility
     mkdir /mnt/shell/emulated 0700 shell shell
     mkdir /storage/emulated 0555 root root
@@ -203,6 +202,11 @@ service wifimacwriter /system/bin/wifimacwriter
     class main
     oneshot
 
+# Write BT BD_ADDR
+service btmacreader /system/bin/btmacreader
+    class main
+    oneshot
+
 service p2p_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf -N \
     -ip2p0 -Dnl80211 -c /data/misc/wifi/p2p_supplicant.conf -e/data/misc/wifi/entropy.bin -puse_p2p_group_interface=1
@@ -296,9 +300,8 @@ service bugreport /system/bin/dumpstate -d -v -o /data/storage/bugreports/bugrep
     oneshot
     keycodes 115 114
 
-#BCM
-service hciattach /system/bin/brcm_patchram_plus --enable_hci --scopcm=0,2,0,0,0,0,0,0,0,0 \
-    --baudrate 3000000 --patchram /etc/firmware/BCM4329B1_002.002.023.0797.0863.hcd --enable_lpm /dev/ttyHS2
+# BCM hciattach - bt firmware loader
+service hciattach /system/bin/bt_firmware_loader.sh
     class main
     user root
     group system bluetooth net_bt_admin misc
