@@ -53,7 +53,6 @@ on post-fs-data
 
 on boot
 
-
 # bluetooth
     # UART device
     chmod 0660 /dev/ttyHS2
@@ -422,7 +421,7 @@ service BtService /system/bin/sh /system/etc/BtService.sh
     disabled
     oneshot
 
-#Touch
+# Touch
 service touch_update /system/bin/touch_fw_update --default
     user system
     group system
