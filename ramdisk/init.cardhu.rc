@@ -31,6 +31,9 @@ on init
 on fs
     setprop ro.crypto.tmpfs_options size=128m,mode=0771,uid=1000,gid=1000
     setprop ro.crypto.umount_sd false
+#    mount ext4 /dev/block/mmcblk0p1 /system wait ro
+#    mount ext4 /dev/block/mmcblk0p8 /data wait noatime nosuid nodev journal_async_commit data=writeback nodelalloc errors=panic
+#    mount ext4 /dev/block/mmcblk0p2 /cache wait noatime nosuid nodev journal_async_commit data=writeback nodelalloc
     mount_all /fstab.cardhu
 
 on post-fs-data
@@ -49,6 +52,7 @@ on post-fs-data
     setprop vold.post_fs_data_done 1
 
 on boot
+
 
 # bluetooth
     # UART device
@@ -73,6 +77,11 @@ on boot
     chown bluetooth net_bt_stack /proc/bluetooth/sleep/lpm
     chown bluetooth net_bt_stack /proc/bluetooth/sleep/btwrite
 
+#NFC
+    setprop ro.nfc.port "I2C"
+    chmod 0660 /dev/pn544
+    chown nfc nfc /dev/pn544
+
 # nvdps
     chown system system /sys/class/graphics/fb0/devics/nvdps
 
@@ -80,6 +89,11 @@ on boot
     chown system system /sys/class/backlight/pwm-backlight/brightness
 
 # didim (old blobs)
+    chown system system /sys/devices/nvhost/tegradc.0/smartdimmer/enable
+    chown system system /sys/devices/nvhost/tegradc.0/smartdimmer/aggressiveness
+    chown system system /sys/devices/nvhost/tegradc.0/smartdimmer/phase_in_adjustments
+
+# didim (new blobs)
     chown system system /sys/class/graphics/fb0/device/smartdimmer/enable
     chown system system /sys/class/graphics/fb0/device/smartdimmer/aggressiveness
     chown system system /sys/class/graphics/fb0/device/smartdimmer/phase_in_adjustments
@@ -141,21 +155,17 @@ on boot
 # We dont want to swap keys unless needed
     setprop sys.dockkeys.change 0
 
-on property:ro.debuggable=1
-    # Touchscreen Config-UI interface
-    chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/mem_access
-    chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/debug_enable
-    chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/pause_driver
-    chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/slowscan_enable
+# Touchscreen Config-UI interface
+   chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/debug_enable
+   chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/pause_driver
+   chmod 666 /sys/devices/platform/tegra-i2c.1/i2c-1/1-005a/slowscan_enable
 
-# Fuse
+#Fuse
     chmod 444 /sys/firmware/fuse/odm_production_mode
 
 # Default Read Ahead value for sdcards
-    write /sys/block/mmcblk0/bdi/read_ahead_kb   4096
-    write /sys/block/mmcblk1/bdi/read_ahead_kb   4096
-    write /sys/block/mmcblk0/queue/read_ahead_kb 4096
-    write /sys/block/mmcblk1/queue/read_ahead_kb 4096
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/mmcblk1/queue/read_ahead_kb 2048
 
 # Wiimote connect status
     write /data/misc/wminput/connected 0
@@ -178,8 +188,6 @@ on property:ro.debuggable=1
 # NTFS and exFAT support
     insmod /sbin/tntfs.ko
     insmod /sbin/texfat.ko
-
-# insmod cfg80211.ko for cfg80211 and P2P mode.
     insmod /system/lib/modules/cfg80211.ko
 
 # insmod WiFi module
@@ -251,16 +259,6 @@ service dhcpcd_eth0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
      disabled
      oneshot
 
-service dhcpcd_rmnet0 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
-    class main
-    disabled
-    oneshot
-
-service dhcpcd_rmnet1 /system/bin/dhcpcd -ABKL -f/system/etc/dhcpcd/dhcpcd.conf
-    class main
-    disabled
-    oneshot
-
 service dhcpcd_bnep0 /system/bin/dhcpcd -ABKL
     class main
     disabled
@@ -277,21 +275,10 @@ service iprenew_p2p /system/bin/dhcpcd -n
     oneshot
 
 service iprenew_eth0 /system/bin/dhcpcd -n
-    class main
     disabled
     oneshot
 
 service iprenew_bnep0 /system/bin/dhcpcd -n
-    class main
-    disabled
-    oneshot
-
-service iprenew_rmnet0 /system/bin/dhcpcd -n
-    class main
-    disabled
-    oneshot
-
-service iprenew_rmnet1 /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
@@ -301,7 +288,7 @@ service iprenew_rmnet1 /system/bin/dhcpcd -n
     class main
     user root
     oneshot
-# Sensor load calibration files end
+#Sensor load calibration files end
 
 # create virtual SD card at /mnt/sdcard, based on the /data/media directory
 # deamon will drop to user/group system/media_rw after initializing
@@ -351,22 +338,30 @@ service mischelp /system/bin/mischelp /dev/block/mmcblk0p3 boot-recovery
 on property:sys.shutdown.requested=1recovery
     start mischelp
 
-# Prepare TF service
+#Prepare TF service
 service tf_daemon /system/bin/tf_daemon -storageDir /data/tf -d
-    disabled
     class main
     user root
     group shell
-    oneshot
 
-# Create data directory and start service
-on property:tf.enable=y
+# may restart due to /data/tf not existing yet
+on property:init.svc.tf_daemon=restarting
     mkdir /data/tf
-    start tf_daemon
+
 
 # stop ril-daemon if this is a wifi-only device
 on property:ro.carrier=wifi-only
     stop ril-daemon
+
+# Enable NvCpuD, and set it to never poll config again
+#on boot
+#    setprop nvcpud.enabled true
+#    setprop nvcpud.config_refresh_ms -1
+
+#service nvcpud /system/bin/nvcpud
+#    class main
+#    user root
+#    group root
 
 service ps3service /system/bin/ps3service
     class main
@@ -415,7 +410,7 @@ service BtService /system/bin/sh /system/etc/BtService.sh
     disabled
     oneshot
 
-# Touch
+#Touch
 service touch_update /system/bin/touch_fw_update --default
     user system
     group system
